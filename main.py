@@ -8,7 +8,6 @@ import os
 TO_EMAILS = os.getenv("TO_EMAILS", "itsaboutgood@gmail.com").split(",")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
-
 BIBLE_API_URL = "https://bible-api.com/"
 
 # 📖 Bible chapter lists
@@ -80,7 +79,8 @@ def send_email(subject, body):
 
 def run_schedule():
     now = datetime.datetime.now()
-    hour = now.hour
+    hour_env = os.getenv("FORCE_HOUR")
+    hour = int(hour_env) if hour_env else now.hour
 
     ot, nt = get_today_readings()
 
