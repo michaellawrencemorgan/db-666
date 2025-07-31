@@ -4,7 +4,7 @@ import smtplib
 from email.message import EmailMessage
 import os
 
-# ✅ Load from environment variables (set these in Render)
+# ✅ Load from environment variables (Render-safe)
 TO_EMAILS = os.getenv("TO_EMAILS", "itsaboutgood@gmail.com").split(",")
 FROM_EMAIL = os.getenv("FROM_EMAIL")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
@@ -76,7 +76,7 @@ def send_email(subject, body):
             msg["To"] = recipient
             smtp.send_message(msg)
             del msg["To"]
-    print(f"✅ Email sent successfully: {subject}")
+    print(f"✅ {subject} email sent to {len(TO_EMAILS)} recipients: {TO_EMAILS}")
 
 def run_schedule():
     now = datetime.datetime.now()
@@ -85,7 +85,17 @@ def run_schedule():
     ot, nt = get_today_readings()
 
     if hour == 6:
-        body = f"📖 Daily Bread Reminder\n\nToday's Readings:\n- OT: {ot}\n- NT: {nt}"
+        text_ot, verses_ot = get_bible_text(ot)
+        text_nt, verses_nt = get_bible_text(nt)
+        quote_ot = get_one_verse(verses_ot)
+        quote_nt = get_one_verse(verses_nt)
+
+        body = (
+            f"📖 Daily Bread Reminder\n\n"
+            f"Today's Readings:\n- OT: {ot}\n- NT: {nt}\n\n"
+            f"🌟 OT Highlight: {quote_ot}\n"
+            f"🌟 NT Highlight: {quote_nt}"
+        )
         send_email("6AM: Daily Bread Reminder", body)
 
     elif hour == 12:
