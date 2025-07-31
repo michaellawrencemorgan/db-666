@@ -2,12 +2,15 @@ import datetime
 import requests
 import smtplib
 from email.message import EmailMessage
+import os
 
-# CONFIG
-TO_EMAIL = "your_email@example.com"
-FROM_EMAIL = "your_bot_email@example.com"
-APP_PASSWORD = "your_app_password"
+# ✅ LOAD FROM ENV VARIABLES (Render-safe)
+TO_EMAILS = os.getenv("TO_EMAILS", "itsaboutgood@gmail.com").split(",")
+FROM_EMAIL = os.getenv("FROM_EMAIL")
+APP_PASSWORD = os.getenv("APP_PASSWORD")
+
 BIBLE_API_URL = "https://bible-api.com/"
+
 PLAN = {
     "07-31": ("1 Chronicles 7", "Romans 13"),
     "08-01": ("1 Chronicles 8", "Romans 14"),
@@ -31,11 +34,13 @@ def send_email(subject, body):
     msg.set_content(body)
     msg["Subject"] = subject
     msg["From"] = FROM_EMAIL
-    msg["To"] = TO_EMAIL
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(FROM_EMAIL, APP_PASSWORD)
-        smtp.send_message(msg)
+        for recipient in TO_EMAILS:
+            msg["To"] = recipient
+            smtp.send_message(msg)
+            del msg["To"]  # Reset header for next recipient
 
 def run_schedule():
     now = datetime.datetime.now()
@@ -57,3 +62,4 @@ def run_schedule():
 
 if __name__ == "__main__":
     run_schedule()
+
